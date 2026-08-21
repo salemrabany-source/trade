@@ -67,7 +67,9 @@
     const columns=['name','description','open','high','low','close','volume','change','Recommend.All','RSI','SMA20','SMA50','average_volume_30d_calc'];
     const response=await fetch('https://scanner.tradingview.com/qatar/scan',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers: {
+  "Content-Type": "text/plain;charset=UTF-8"
+},
       body:JSON.stringify({symbols:{tickers:[`QSE:${symbol}`],query:{types:[]}},columns})
     });
     if(!response.ok)throw new Error(`تعذر الاتصال بمصدر البيانات (${response.status})`);
