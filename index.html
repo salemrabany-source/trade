@@ -17,7 +17,7 @@
     #message{margin:14px 8px 20px;color:#557080;min-height:24px;text-align:center;font-size:13px;font-weight:600}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:rgba(255,255,255,.97);border:1px solid rgba(213,226,232,.9);border-radius:22px;padding:25px;box-shadow:var(--shadow)}.stock-card{position:relative;overflow:hidden}.stock-card:after{content:'';position:absolute;width:145px;height:145px;border-radius:50%;background:rgba(23,107,135,.07);left:-55px;bottom:-65px}.eyebrow{color:var(--blue);font-size:12px;font-weight:800;margin:0 0 7px}.stock-card h2{margin:0;font-size:25px}.symbol{color:var(--muted);direction:ltr;display:inline-block;font-weight:700;font-size:13px}.price{font-size:46px;font-weight:800;margin:16px 0 7px;direction:ltr;text-align:right;letter-spacing:-1px}.quote-line{margin:0;color:var(--muted);font-size:13px}
     .decision{color:#fff;background:linear-gradient(145deg,#bd821d,#946214);border:0;position:relative;overflow:hidden}.decision:after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;border:35px solid rgba(255,255,255,.06);left:-70px;top:-75px}.decision.buy{background:linear-gradient(145deg,#0d9878,#08705e)}.decision.sell{background:linear-gradient(145deg,#d7555e,#a93242)}.decision small{color:#ffffffbf;font-weight:600}.decision h2{font-size:40px;margin:10px 0 4px;position:relative;z-index:1}.decision p{color:#ffffffe6;min-height:42px;font-size:13px}.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}.levels>div{padding:11px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.11);border-radius:12px}.levels span{display:block;color:#ffffffb8;font-size:10px}.levels b{direction:ltr;display:block;margin-top:4px;font-size:14px}
     .checks{margin-top:18px}.section-title{display:flex;align-items:center;gap:9px;margin:0 0 8px;font-size:20px}.section-title:before{content:'';width:5px;height:25px;border-radius:4px;background:linear-gradient(var(--blue),#39a99d)}.check{display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid var(--line);padding:13px 3px;font-size:13px}.check:last-child{border:0}.check b{font-size:12px;white-space:nowrap}.ok{color:var(--green)}.no{color:var(--red)}
-    .chart{height:560px;margin-top:18px;padding:18px;overflow:hidden}.chart-head{display:flex;align-items:center;justify-content:space-between;margin:0 4px 12px}.chart-head h2{margin:0;font-size:18px}.chart-head span{direction:ltr;color:var(--muted);font-size:12px;font-weight:700}.chart-box{height:calc(100% - 42px);position:relative;border-radius:15px;overflow:hidden;background:#fbfdfe;border:1px solid var(--line)}.chart-box canvas{display:block;width:100%;height:100%}.chart-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:25px;color:var(--muted);font-size:14px}.hidden{display:none}
+    .chart{height:560px;margin-top:18px;padding:18px;overflow:hidden}.chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 4px 12px}.chart-head h2{margin:0;font-size:18px}.chart-tools{display:flex;align-items:center;gap:7px}.chart-tools span{direction:ltr;color:var(--muted);font-size:11px;font-weight:700}.interval-btn{border:1px solid var(--line);background:#f5f8fa;color:var(--muted);border-radius:8px;padding:5px 10px;font:700 11px 'Cairo';cursor:pointer}.interval-btn.active{background:var(--navy-2);border-color:var(--navy-2);color:#fff}.chart-box{height:calc(100% - 42px);position:relative;border-radius:15px;overflow:hidden;background:#fbfdfe;border:1px solid var(--line)}.chart-box canvas{display:block;width:100%;height:100%}.chart-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:25px;color:var(--muted);font-size:14px}.hidden{display:none}
     @media(max-width:720px){main{width:min(94%,1120px);padding-top:30px}.hero h1{letter-spacing:-1px}.search-wrap{border-radius:18px}.search{flex-direction:column}.search button{height:50px}.grid{grid-template-columns:1fr}.card{padding:20px;border-radius:18px}.price{font-size:38px}.decision h2{font-size:34px}.levels{gap:6px}.levels>div{padding:9px 6px}.chart{height:500px}.check{align-items:flex-start;flex-direction:column;gap:5px}.check b{white-space:normal}}
   </style>
 </head>
@@ -55,7 +55,7 @@
       </article>
     </div>
     <article class="card checks"><h2 class="section-title">تفاصيل الشروط الفنية</h2><div id="checks"></div></article>
-    <article class="card chart"><div class="chart-head"><h2>الرسم البياني للشموع</h2><span id="chartInterval">1D</span></div><div id="chartBox" class="chart-box"></div></article>
+    <article class="card chart"><div class="chart-head"><h2>الرسم البياني للشموع</h2><div class="chart-tools"><button id="dailyChart" class="interval-btn active" type="button">يومي</button><button id="hourlyChart" class="interval-btn" type="button">ساعة</button><span id="chartInterval">1D</span></div></div><div id="chartBox" class="chart-box"></div></article>
   </section>
 </main>
 <script>
@@ -116,8 +116,9 @@
     return {symbol,companyName:x.description,quote:{last:x.close,open:x.open,high:x.high,low:x.low,volume:x.volume,change:x.change},analysis:{decision,score:finalScore,entry:decision==='buy'?x.high:decision==='sell'?x.low:null,stop:decision==='buy'?Number(x.low)*.9965:decision==='sell'?Number(x.high)*1.0035:null,reason:decision==='buy'?'توافقت خلفية المسار مع مؤشرات الشراء.':decision==='sell'?'توافقت خلفية المسار مع مؤشرات البيع.':'الشروط متعارضة أو لم تبلغ حد التأكيد.',checks}};
   }
 
-  function showCandlestickChart(symbol,candles=[]){
-    const host=$('chartBox');host.innerHTML='';$('chartInterval').textContent=`QSE:${symbol} · 1D`;
+  let currentChart={symbol:'',daily:[],hourly:[]};
+  function showCandlestickChart(symbol,candles=[],interval='1D'){
+    const host=$('chartBox');host.innerHTML='';$('chartInterval').textContent=`QSE:${symbol} · ${interval}`;
     const rows=(candles||[]).filter(c=>[c.open,c.high,c.low,c.close].every(v=>Number.isFinite(Number(v)))).slice(-100);
     if(rows.length<2){host.innerHTML='<div class="chart-empty">لا يتوفر تاريخ كافٍ لرسم الشموع لهذا السهم.<br>سيظهر الرسم بعد إضافة ملف البيانات التاريخية.</div>';return}
     const canvas=document.createElement('canvas');host.appendChild(canvas);
@@ -128,7 +129,7 @@
       ctx.font="11px Cairo";ctx.strokeStyle='#e4edf1';ctx.fillStyle='#6e7f8c';ctx.lineWidth=1;
       for(let i=0;i<=5;i++){const py=pad.top+i*ch/5,value=max-i*span/5;ctx.beginPath();ctx.moveTo(pad.left,py);ctx.lineTo(w-pad.right,py);ctx.stroke();ctx.textAlign='left';ctx.fillText(value.toFixed(2),w-pad.right+8,py+4)}
       const step=cw/rows.length,body=Math.max(2,Math.min(9,step*.62));rows.forEach((c,i)=>{const rising=+c.close>=+c.open,color=rising?'#0d9276':'#d14d58',cx=x(i);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx,y(+c.high));ctx.lineTo(cx,y(+c.low));ctx.stroke();const top=y(Math.max(+c.open,+c.close)),height=Math.max(1.5,Math.abs(y(+c.open)-y(+c.close)));ctx.fillRect(cx-body/2,top,body,height)});
-      ctx.fillStyle='#6e7f8c';ctx.textAlign='center';const labels=5;for(let i=0;i<labels;i++){const index=Math.round(i*(rows.length-1)/(labels-1));ctx.fillText(rows[index].date.slice(5),x(index),h-11)}
+      ctx.fillStyle='#6e7f8c';ctx.textAlign='center';const labels=5;for(let i=0;i<labels;i++){const index=Math.round(i*(rows.length-1)/(labels-1)),raw=rows[index].date,label=interval==='60'?`${raw.slice(5,10)} ${raw.slice(11,16)}`:raw.slice(5,10);ctx.fillText(label,x(index),h-11)}
       const last=rows.at(-1),lastY=y(+last.close);ctx.strokeStyle='#176b87';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.left,lastY);ctx.lineTo(w-pad.right,lastY);ctx.stroke();ctx.setLineDash([]);
     };
     requestAnimationFrame(draw);if(window.chartObserver)window.chartObserver.disconnect();window.chartObserver=new ResizeObserver(draw);window.chartObserver.observe(host);
@@ -143,7 +144,8 @@
     $('decisionCard').className=`card decision ${decision}`;$('decision').textContent=`${labels[decision]}${snapshotPartial?' أولي':''}`;$('reason').textContent=data.analysis?.reason||'لم تكتمل شروط الدخول.';
     $('entry').textContent=decision==='wait'?'لا توجد إشارة':number(data.analysis?.entry);$('stop').textContent=decision==='wait'?'لا توجد إشارة':number(data.analysis?.stop);$('score').textContent=`${data.analysis?.score||0}%`;
     $('checks').innerHTML=(data.analysis?.checks||[]).map(c=>`<div class="check"><span>${c.name}</span><b class="${!c.available?'':c.passed?'ok':'no'}">${!c.available?'— البيانات غير متوفرة':c.passed?'✓ متحقق':'× غير متحقق'}</b></div>`).join('');
-    showCandlestickChart(data.symbol,data.chart?.candles||[]);
+    currentChart={symbol:data.symbol,daily:data.chart?.daily?.candles||data.chart?.candles||[],hourly:data.chart?.hourly?.candles||[]};
+    $('dailyChart').classList.add('active');$('hourlyChart').classList.remove('active');showCandlestickChart(data.symbol,currentChart.daily,'1D');
   }
 
   $('searchForm').addEventListener('submit',async event=>{
@@ -155,6 +157,8 @@
       render(data);$('message').textContent=data.analysis?.mode==='snapshot-partial'?`تنبيه: تحليل أولي؛ التاريخ المخزن ${data.history?.storedCandles||0} من ${data.history?.requiredCandles||120} شمعة.`:data.analysis?.coverage?.intraday?`تحليل الدورة كامل بجميع الفواصل — آخر تحديث: ${data.updatedAt||'الآن'}`:`تحليل مسائي كامل للشهري والأسبوعي واليومي؛ تأكيد الفاصل الصغير غير متوفر — آخر تحديث: ${data.updatedAt||'الآن'}`;
     }catch(error){$('message').textContent=`تعذر إكمال التحليل: ${error.message}`;}
   });
+  $('dailyChart').addEventListener('click',()=>{$('dailyChart').classList.add('active');$('hourlyChart').classList.remove('active');showCandlestickChart(currentChart.symbol,currentChart.daily,'1D')});
+  $('hourlyChart').addEventListener('click',()=>{$('hourlyChart').classList.add('active');$('dailyChart').classList.remove('active');showCandlestickChart(currentChart.symbol,currentChart.hourly,'60')});
   loadStocks();
 </script>
 </body>
