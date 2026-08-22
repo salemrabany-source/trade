@@ -1,0 +1,11 @@
+{
+  "name": "qse-analysis-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "collect:eod": "node scripts/collect-eod.mjs",
+    "check": "node --check server.mjs && node --check app.js && node --check analysis-engine.js && node --check eod-engine.mjs && node --check scripts/collect-eod.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
