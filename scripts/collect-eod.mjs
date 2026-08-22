@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-const SYMBOLS=['QNBK','QIBK','IQCD','ORDS','QGTS','MARK','CBQK','DUBK','QAMC','BRES','IGRD','VFQS','MPHC','QEWS','QNNS','QGRI'];
+const SYMBOLS=['ABQK','AHCS','AKHI','BEMA','BLDN','BRES','CBQK','DBIS','DHBK','DOHI','DUBK','ERES','FALH','GISS','GWCS','IGRD','IHGS','IQCD','MARK','MCCS','MCGS','MERS','MEZA','MFMS','MHAR','MKDM','MPHC','MRDS','NLCS','ORDS','QAMC','QATI','QCFS','QEWS','QFBQ','QFLS','QGMD','QGRI','QGTS','QIBK','QIGD','QIIK','QIMD','QISI','QLMI','QNBK','QNCD','QNNS','SIIS','TQES','UDCD','VFQS','WDAM','ZHCD'];
 const URL='https://scanner.tradingview.com/qatar/scan',columns=['name','open','high','low','close','volume'];
 const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Qatar',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 await mkdir('data',{recursive:true});
