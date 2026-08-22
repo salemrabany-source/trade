@@ -124,7 +124,6 @@
     $('checks').innerHTML=(data.analysis?.checks||[]).map(c=>`<div class="check"><span>${c.name}</span><b class="${!c.available?'':c.passed?'ok':'no'}">${!c.available?'— البيانات غير متوفرة':c.passed?'✓ متحقق':'× غير متحقق'}</b></div>`).join('');
     showTradingView(data.symbol);
   }
-
   $('searchForm').addEventListener('submit',async event=>{
     event.preventDefault();const symbol=normalize($('stockInput').value);$('message').textContent='جارٍ جلب البيانات وتطبيق الشروط…';
     try{
