@@ -60,6 +60,7 @@
     'مصرف الريان':'MARK','البنك التجاري':'CBQK','بنك دخان':'DUBK','قامكو':'QAMC','بروة':'BRES'
   };
   const $=id=>document.getElementById(id);
+  const API_BASE='https://trade-kappa-rouge.vercel.app';
   const normalize=value=>aliases[value.trim().toLowerCase()]||value.trim().toUpperCase();
   const number=value=>value==null?'—':Number(value).toLocaleString('ar-QA',{maximumFractionDigits:3});
 
@@ -67,9 +68,9 @@
     const columns=['name','description','open','high','low','close','volume','change','Recommend.All','RSI','SMA20','SMA50','average_volume_30d_calc'];
     const response=await fetch('https://scanner.tradingview.com/qatar/scan',{
       method:'POST',
-      headers: {
-  "Content-Type": "text/plain;charset=UTF-8"
-},
+      // text/plain is intentional: it is a CORS "simple request". TradingView
+      // accepts the JSON body but does not allow Content-Type in preflight.
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
       body:JSON.stringify({symbols:{tickers:[`QSE:${symbol}`],query:{types:[]}},columns})
     });
     if(!response.ok)throw new Error(`تعذر الاتصال بمصدر البيانات (${response.status})`);
@@ -121,11 +122,12 @@
   $('searchForm').addEventListener('submit',async event=>{
     event.preventDefault();const symbol=normalize($('stockInput').value);$('message').textContent='جارٍ جلب البيانات وتطبيق الشروط…';
     try{
-      const data=await fetchAnalysis(symbol);
+      const response=await fetch(`${API_BASE}/api/analyze?symbol=${encodeURIComponent(symbol)}`);
+      const data=await response.json();
+      if(!response.ok)throw new Error(data.error||'تعذر تحليل السهم.');
       render(data);$('message').textContent=`آخر تحديث: ${data.updatedAt||'الآن'}`;
     }catch(error){$('message').textContent=`تعذر إكمال التحليل: ${error.message}`;}
   });
-  
 </script>
 </body>
 </html>
