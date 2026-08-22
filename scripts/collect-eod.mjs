@@ -1,0 +1,9 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+const SYMBOLS=['QNBK','QIBK','IQCD','ORDS','QGTS','MARK','CBQK','DUBK','QAMC','BRES','IGRD','VFQS','MPHC','QEWS','QNNS','QGRI'];
+const URL='https://scanner.tradingview.com/qatar/scan',columns=['name','open','high','low','close','volume'];
+const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Qatar',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+await mkdir('data',{recursive:true});
+const response=await fetch(URL,{method:'POST',headers:{'content-type':'text/plain;charset=UTF-8'},body:JSON.stringify({symbols:{tickers:SYMBOLS.map(s=>`QSE:${s}`),query:{types:[]}},columns})});
+if(!response.ok)throw new Error(`TradingView ${response.status}`);const payload=await response.json();
+for(const row of payload.data||[]){const symbol=row.s.split(':')[1],x=Object.fromEntries(columns.map((k,i)=>[k,row.d[i]]));if(!['open','high','low','close','volume'].every(k=>Number.isFinite(Number(x[k]))))continue;const path=`data/${symbol}.json`;let old=[];try{old=JSON.parse(await readFile(path,'utf8'))}catch{}const byDate=new Map(old.map(c=>[c.date,c]));byDate.set(date,{date,open:+x.open,high:+x.high,low:+x.low,close:+x.close,volume:+x.volume});await writeFile(path,JSON.stringify([...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date)),null,2)+'\n')}
+console.log(`Saved EOD candles for ${payload.data?.length||0} symbols on ${date}`);
