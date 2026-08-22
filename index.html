@@ -118,8 +118,9 @@
     $('price').textContent=`${number(data.quote?.last)} ر.ق`;
     $('quoteDetails').textContent=`العرض ${number(data.quote?.ask)} | الطلب ${number(data.quote?.bid)} | الحجم ${number(data.quote?.volume)}`;
     const decision=data.analysis?.decision||'wait',labels={buy:'شراء',sell:'بيع',wait:'انتظار'};
-    $('decisionCard').className=`card decision ${decision}`;$('decision').textContent=`${labels[decision]}${data.analysis?.provisional?' أولي':''}`;$('reason').textContent=data.analysis?.reason||'لم تكتمل شروط الدخول.';
-    $('entry').textContent=number(data.analysis?.entry);$('stop').textContent=number(data.analysis?.stop);$('score').textContent=`${data.analysis?.score||0}%`;
+    const snapshotPartial=data.analysis?.mode==='snapshot-partial';
+    $('decisionCard').className=`card decision ${decision}`;$('decision').textContent=`${labels[decision]}${snapshotPartial?' أولي':''}`;$('reason').textContent=data.analysis?.reason||'لم تكتمل شروط الدخول.';
+    $('entry').textContent=decision==='wait'?'لا توجد إشارة':number(data.analysis?.entry);$('stop').textContent=decision==='wait'?'لا توجد إشارة':number(data.analysis?.stop);$('score').textContent=`${data.analysis?.score||0}%`;
     $('checks').innerHTML=(data.analysis?.checks||[]).map(c=>`<div class="check"><span>${c.name}</span><b class="${!c.available?'':c.passed?'ok':'no'}">${!c.available?'— البيانات غير متوفرة':c.passed?'✓ متحقق':'× غير متحقق'}</b></div>`).join('');
     showTradingView(data.symbol);
   }
