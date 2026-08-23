@@ -11,7 +11,7 @@ const TV_URL='https://scanner.tradingview.com/qatar/scan';
 // These symbols were imported from batch CSV files whose Pine S1..S10 plots
 // still referenced the original ten symbols. Keep them blocked until their
 // correctly mapped daily and hourly histories are re-imported.
-const INVALID_HISTORICAL_SYMBOLS=new Set(['ABQK','AHCS','AKHI','BEMA','BLDN','DBIS','DHBK','DOHI','ERES','FALH','GISS','GWCS','IGRD','IHGS','MCCS','MCGS','MERS','MEZA','MFMS','MHAR','MKDM','MPHC','MRDS','NLCS','QATI','QCFS','QEWS','QFBQ','QFLS','QGMD','QGRI','QIGD','QIIK','QIMD','QISI','QLMI','QNCD','QNNS','SIIS','TQES','UDCD','VFQS','WDAM','ZHCD']);
+const INVALID_HISTORICAL_SYMBOLS=new Set([]);
 const STATIC_NAMES={QNBK:'بنك قطر الوطني',QIBK:'مصرف قطر الإسلامي',IQCD:'صناعات قطر',ORDS:'أريدُ',QGTS:'ناقلات',MARK:'مصرف الريان',CBQK:'البنك التجاري',DUBK:'بنك دخان',QAMC:'قامكو',BRES:'بروة',IGRD:'استثمار القابضة',VFQS:'فودافون قطر',MPHC:'مسيعيد',QEWS:'نبراس للطاقة',QNNS:'الملاحة القطرية',QGRI:'العامة للتأمين'};
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8'};
 let catalogCache={expires:0,data:null};
