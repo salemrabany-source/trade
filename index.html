@@ -140,7 +140,9 @@
     $('result').classList.remove('hidden');$('companyName').textContent=data.companyName||data.symbol;$('symbol').textContent=`QSE:${data.symbol}`;
     $('price').textContent=`${number(data.quote?.last)} ر.ق`;
     $('quoteDetails').textContent=`العرض ${number(data.quote?.ask)} | الطلب ${number(data.quote?.bid)} | الحجم ${number(data.quote?.volume)}`;
-    const decision=data.analysis?.decision||'wait',watch=data.analysis?.watch,displaySide=decision==='wait'&&watch?watch.side:decision,labels={buy:'شراء',sell:'بيع',waitانتظار'}:';
+    const decision=data.analysis?.decision||'wait';
+    const watch=data.analysis?.watch;
+    const labels={buy:'شراء',sell:'بيع',wait:'انتظار'};
     const snapshotPartial=data.analysis?.mode==='snapshot-partial';
     $('decisionCard').className=`card decision ${decision!=='wait'?decision:''}`;$('decision').textContent=watch&&decision==='wait'?`مراقبة ${labels[watch.side]}`:`${labels[decision]}${snapshotPartial?' أولي':''}`;$('reason').textContent=data.analysis?.reason||'لم تكتمل شروط الدخول.';
     $('entry').textContent=number(decision==='wait'?watch?.entry:data.analysis?.entry);$('stop').textContent=number(decision==='wait'?watch?.stop:data.analysis?.stop);$('score').textContent=`${data.analysis?.score||0}%`;
