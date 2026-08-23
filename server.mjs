@@ -15,6 +15,15 @@ const INVALID_HISTORICAL_SYMBOLS=new Set(['ABQK','AHCS','AKHI','BEMA','BLDN','DB
 const STATIC_NAMES={QNBK:'بنك قطر الوطني',QIBK:'مصرف قطر الإسلامي',IQCD:'صناعات قطر',ORDS:'أريدُ',QGTS:'ناقلات',MARK:'مصرف الريان',CBQK:'البنك التجاري',DUBK:'بنك دخان',QAMC:'قامكو',BRES:'بروة',IGRD:'استثمار القابضة',VFQS:'فودافون قطر',MPHC:'مسيعيد',QEWS:'نبراس للطاقة',QNNS:'الملاحة القطرية',QGRI:'العامة للتأمين'};
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8'};
 let catalogCache={expires:0,data:null};
+const historicalSignalCache=new Map();
+
+function lastHistoricalSignal(symbol,history){
+  const rows=[...new Map((history||[]).map(c=>[String(c.date).slice(0,10),c])).values()].sort((a,b)=>String(a.date).localeCompare(String(b.date))),key=`${symbol}:${rows.length}:${rows.at(-1)?.date||''}`;
+  if(historicalSignalCache.has(key))return historicalSignalCache.get(key);
+  let found=null;
+  for(let i=rows.length-2;i>=Math.max(120,rows.length-260);i--){const result=analyzeEod({daily:rows.slice(0,i+1),intraday:[]});if(result.decision==='buy'||result.decision==='sell'){found={date:rows[i].date,decision:result.decision,score:result.score,entry:result.entry,stop:result.stop};break}}
+  historicalSignalCache.clear();historicalSignalCache.set(key,found);return found;
+}
 
 async function fetchWithTimeout(url,options={},timeout=12000){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
@@ -82,7 +91,7 @@ export async function analyzeSymbol(symbol){
   const snapshot=buildAnalysis(market);
   const analysis=full.mode?.startsWith('full-')||full.mode==='data-integrity-error'?full:{...snapshot,mode:'snapshot-partial',provisional:true,availableConditions:5,totalConditions:'المحرك الكامل',warnings:[full.reason,'هذه إشارة أولية مبنية على الشروط المتاحة فقط، وليست توصية مكتملة أو نسبة نجاح.']};
   const chartCandles=[...new Map(history.map(c=>[c.date,c])).values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-300);
-  return {symbol,companyName:company?.arabicName||STATIC_NAMES[symbol]||market.description,englishName:company?.englishName||market.description,quote:{last:market.close,open:market.open,high:market.high,low:market.low,volume:market.volume,change:market.change,bid:null,ask:null},analysis,history:{storedCandles:historicalDataValid?Math.max(0,history.length-1):0,intradayCandles:historicalDataValid?intraday.length:0,requiredCandles:120,requiredIntradayCandles:30,fullEngine:full.mode?.startsWith('full-')},chart:{daily:{interval:'1D',candles:historicalDataValid?chartCandles:[]},hourly:{interval:'60',candles:historicalDataValid?intraday.slice(-500):[]}},updatedAt:new Date().toISOString(),sources:{group:{url:GROUP_URL,status:groupStatus,usage:'التحقق من الرمز واسم الشركة'},tradingView:{status:'connected',usage:'السعر والمؤشرات الفنية ولقطة EOD'}}};
+  return {symbol,companyName:company?.arabicName||STATIC_NAMES[symbol]||market.description,englishName:company?.englishName||market.description,quote:{last:market.close,open:market.open,high:market.high,low:market.low,volume:market.volume,change:market.change,bid:null,ask:null},analysis:{...analysis,lastHistoricalSignal:historicalDataValid?lastHistoricalSignal(symbol,history):null},history:{storedCandles:historicalDataValid?Math.max(0,history.length-1):0,intradayCandles:historicalDataValid?intraday.length:0,requiredCandles:120,requiredIntradayCandles:30,fullEngine:full.mode?.startsWith('full-')},chart:{daily:{interval:'1D',candles:historicalDataValid?chartCandles:[]},hourly:{interval:'60',candles:historicalDataValid?intraday.slice(-500):[]}},updatedAt:new Date().toISOString(),sources:{group:{url:GROUP_URL,status:groupStatus,usage:'التحقق من الرمز واسم الشركة'},tradingView:{status:'connected',usage:'السعر والمؤشرات الفنية ولقطة EOD'}}};
 }
 
 export async function listStocks(){
