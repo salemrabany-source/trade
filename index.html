@@ -15,10 +15,11 @@
     main{width:min(1120px,92%);margin:0 auto;padding:48px 0 54px}.hero{text-align:center;color:#fff;margin-bottom:30px}.brand{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(255,255,255,.08);font-size:13px;font-weight:600}.brand i{width:8px;height:8px;border-radius:50%;background:#50e3b4;box-shadow:0 0 12px #50e3b4}.hero h1{font-size:clamp(31px,5vw,53px);line-height:1.25;margin:18px 0 8px;font-weight:800;letter-spacing:-1.5px}.hero p{color:#d5e5eb;margin:0;font-size:clamp(14px,2vw,17px)}
     .search-wrap{padding:7px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:22px;box-shadow:0 22px 55px rgba(4,24,39,.24);backdrop-filter:blur(12px)}.search{display:flex;gap:9px;padding:9px;background:#fff;border-radius:15px}.search input{flex:1;min-width:0;padding:14px 18px;border:0;outline:0;border-radius:11px;background:#f5f8fa;color:var(--ink);font:600 15px 'Cairo',sans-serif}.search input:focus{box-shadow:inset 0 0 0 2px rgba(23,107,135,.3);background:#fff}.search button{padding:0 28px;border:0;border-radius:11px;background:linear-gradient(135deg,var(--gold),#efc66d);color:#37270a;font:800 15px 'Cairo',sans-serif;cursor:pointer;transition:.2s}.search button:hover{transform:translateY(-1px);filter:brightness(1.04)}
     #message{margin:14px 8px 20px;color:#557080;min-height:24px;text-align:center;font-size:13px;font-weight:600}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:rgba(255,255,255,.97);border:1px solid rgba(213,226,232,.9);border-radius:22px;padding:25px;box-shadow:var(--shadow)}.stock-card{position:relative;overflow:hidden}.stock-card:after{content:'';position:absolute;width:145px;height:145px;border-radius:50%;background:rgba(23,107,135,.07);left:-55px;bottom:-65px}.eyebrow{color:var(--blue);font-size:12px;font-weight:800;margin:0 0 7px}.stock-card h2{margin:0;font-size:25px}.symbol{color:var(--muted);direction:ltr;display:inline-block;font-weight:700;font-size:13px}.price{font-size:46px;font-weight:800;margin:16px 0 7px;direction:ltr;text-align:right;letter-spacing:-1px}.quote-line{margin:0;color:var(--muted);font-size:13px}
+    .signal-browser{margin:0 0 20px}.signal-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.signal-tab{border:1px solid var(--line);background:#fff;border-radius:15px;padding:14px 10px;font:800 14px 'Cairo';color:var(--ink);cursor:pointer;box-shadow:0 8px 24px rgba(7,27,46,.06);transition:.2s}.signal-tab:hover,.signal-tab.active{transform:translateY(-1px);border-color:currentColor}.signal-tab.buy{color:var(--green)}.signal-tab.sell{color:var(--red)}.signal-tab.watch{color:var(--amber)}.signal-tab b{display:inline-grid;place-items:center;min-width:25px;height:25px;margin-right:6px;border-radius:999px;background:currentColor;color:#fff;font-size:11px}.signal-list{margin-top:10px;padding:15px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.signal-list.hidden{display:none}.signal-list-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.signal-list-head h2{margin:0;font-size:17px}.signal-list-head small{color:var(--muted)}.signal-row{width:100%;display:grid;grid-template-columns:1.5fr .6fr .8fr .8fr;gap:8px;align-items:center;border:0;border-top:1px solid var(--line);background:#fff;padding:12px 4px;color:var(--ink);font:600 12px 'Cairo';cursor:pointer;text-align:right}.signal-row:first-child{border-top:0}.signal-row:hover{background:#f7fafb}.signal-row strong{font-size:13px}.signal-row span{direction:ltr;text-align:center}.signal-empty{text-align:center;color:var(--muted);padding:18px}
     .decision{color:#fff;background:linear-gradient(145deg,#bd821d,#946214);border:0;position:relative;overflow:hidden}.decision:after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;border:35px solid rgba(255,255,255,.06);left:-70px;top:-75px}.decision.buy{background:linear-gradient(145deg,#0d9878,#08705e)}.decision.sell{background:linear-gradient(145deg,#d7555e,#a93242)}.decision small{color:#ffffffbf;font-weight:600}.decision h2{font-size:40px;margin:10px 0 4px;position:relative;z-index:1}.decision p{color:#ffffffe6;min-height:42px;font-size:13px}.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}.levels>div{padding:11px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.11);border-radius:12px}.levels span{display:block;color:#ffffffb8;font-size:10px}.levels b{direction:ltr;display:block;margin-top:4px;font-size:14px}.signal-note{position:relative;z-index:1;margin-top:10px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.1);font-size:11px;color:#fff}.signal-note:empty{display:none}
     .checks{margin-top:18px}.section-title{display:flex;align-items:center;gap:9px;margin:0 0 8px;font-size:20px}.section-title:before{content:'';width:5px;height:25px;border-radius:4px;background:linear-gradient(var(--blue),#39a99d)}.check{display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid var(--line);padding:13px 3px;font-size:13px}.check:last-child{border:0}.check b{font-size:12px;white-space:nowrap}.ok{color:var(--green)}.no{color:var(--red)}
     .chart{height:560px;margin-top:18px;padding:18px;overflow:hidden}.chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 4px 12px}.chart-head h2{margin:0;font-size:18px}.chart-tools{display:flex;align-items:center;gap:7px}.chart-tools span{direction:ltr;color:var(--muted);font-size:11px;font-weight:700}.interval-btn{border:1px solid var(--line);background:#f5f8fa;color:var(--muted);border-radius:8px;padding:5px 10px;font:700 11px 'Cairo';cursor:pointer}.interval-btn.active{background:var(--navy-2);border-color:var(--navy-2);color:#fff}.chart-box{height:calc(100% - 42px);position:relative;border-radius:15px;overflow:hidden;background:#fbfdfe;border:1px solid var(--line)}.chart-box canvas{display:block;width:100%;height:100%}.chart-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:25px;color:var(--muted);font-size:14px}.hidden{display:none}
-    @media(max-width:720px){main{width:min(94%,1120px);padding-top:30px}.hero h1{letter-spacing:-1px}.search-wrap{border-radius:18px}.search{flex-direction:column}.search button{height:50px}.grid{grid-template-columns:1fr}.card{padding:20px;border-radius:18px}.price{font-size:38px}.decision h2{font-size:34px}.levels{gap:6px}.levels>div{padding:9px 6px}.chart{height:500px}.check{align-items:flex-start;flex-direction:column;gap:5px}.check b{white-space:normal}}
+    @media(max-width:720px){main{width:min(94%,1120px);padding-top:30px}.hero h1{letter-spacing:-1px}.search-wrap{border-radius:18px}.search{flex-direction:column}.search button{height:50px}.signal-tabs{grid-template-columns:1fr}.signal-row{grid-template-columns:1.4fr .6fr .8fr}.signal-row .stop-col{display:none}.grid{grid-template-columns:1fr}.card{padding:20px;border-radius:18px}.price{font-size:38px}.decision h2{font-size:34px}.levels{gap:6px}.levels>div{padding:9px 6px}.chart{height:500px}.check{align-items:flex-start;flex-direction:column;gap:5px}.check b{white-space:normal}}
   </style>
 </head>
 <body>
@@ -41,6 +42,15 @@
       <button type="submit">تحليل السهم</button>
   </form></div>
   <div id="message">أدخل السهم ثم اضغط تحليل.</div>
+
+  <section class="signal-browser" aria-label="جرد إشارات الأسهم">
+    <div class="signal-tabs">
+      <button class="signal-tab buy" data-list="buy" type="button">أسهم الشراء <b id="buyCount">—</b></button>
+      <button class="signal-tab sell" data-list="sell" type="button">أسهم البيع <b id="sellCount">—</b></button>
+      <button class="signal-tab watch" data-list="watch" type="button">تحت المراقبة <b id="watchCount">—</b></button>
+    </div>
+    <div id="signalList" class="signal-list hidden"></div>
+  </section>
 
   <section id="result" class="hidden">
     <div class="grid">
@@ -69,6 +79,24 @@
   const API_BASE='https://trade-kappa-rouge.vercel.app';
   const normalize=value=>aliases[value.trim().toLowerCase()]||value.trim().toUpperCase();
   const number=value=>value==null?'—':Number(value).toLocaleString('ar-QA',{maximumFractionDigits:3});
+  let signalData=null;
+
+  function drawSignalList(type){
+    document.querySelectorAll('.signal-tab').forEach(button=>button.classList.toggle('active',button.dataset.list===type));
+    const host=$('signalList'),titles={buy:'أسهم الشراء',sell:'أسهم البيع',watch:'الأسهم تحت المراقبة'},items=signalData?.[type]||[];
+    host.classList.remove('hidden');
+    host.innerHTML=`<div class="signal-list-head"><h2>${titles[type]}</h2><small>${items.length} سهم</small></div>`+(items.length?items.map(item=>`<button class="signal-row" type="button" data-symbol="${item.symbol}"><strong>${item.name}<br><small>QSE:${item.symbol}</small></strong><span>${item.score}%</span><span>تفعيل ${number(item.entry)}</span><span class="stop-col">إلغاء ${number(item.stop)}</span></button>`).join(''):'<div class="signal-empty">لا توجد أسهم في هذه القائمة حاليًا.</div>');
+    host.querySelectorAll('[data-symbol]').forEach(row=>row.addEventListener('click',()=>{$('stockInput').value=row.dataset.symbol;$('searchForm').requestSubmit();window.scrollTo({top:0,behavior:'smooth'})}));
+  }
+
+  async function openSignalList(type){
+    if(!signalData){
+      $('signalList').classList.remove('hidden');$('signalList').innerHTML='<div class="signal-empty">جارٍ فحص الأسهم وتطبيق الشروط…</div>';
+      try{const response=await fetch(`${API_BASE}/api/signals`),data=await response.json();if(!response.ok)throw new Error(data.error||'تعذر جرد الأسهم.');signalData=data;$('buyCount').textContent=data.buy.length;$('sellCount').textContent=data.sell.length;$('watchCount').textContent=data.watch.length}
+      catch(error){$('signalList').innerHTML=`<div class="signal-empty">تعذر تحميل القوائم: ${error.message}</div>`;return}
+    }
+    drawSignalList(type);
+  }
 
   async function loadStocks(){
     try{
@@ -163,6 +191,7 @@
   });
   $('dailyChart').addEventListener('click',()=>{$('dailyChart').classList.add('active');$('hourlyChart').classList.remove('active');showCandlestickChart(currentChart.symbol,currentChart.daily,'1D')});
   $('hourlyChart').addEventListener('click',()=>{$('hourlyChart').classList.add('active');$('dailyChart').classList.remove('active');showCandlestickChart(currentChart.symbol,currentChart.hourly,'60')});
+  document.querySelectorAll('.signal-tab').forEach(button=>button.addEventListener('click',()=>openSignalList(button.dataset.list)));
   loadStocks();
 </script>
 </body>
