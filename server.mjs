@@ -13,6 +13,7 @@ const TV_URL='https://scanner.tradingview.com/qatar/scan';
 // correctly mapped daily and hourly histories are re-imported.
 const INVALID_HISTORICAL_SYMBOLS=new Set([]);
 const STATIC_NAMES={QNBK:'بنك قطر الوطني',QIBK:'مصرف قطر الإسلامي',IQCD:'صناعات قطر',ORDS:'أريدُ',QGTS:'ناقلات',MARK:'مصرف الريان',CBQK:'البنك التجاري',DUBK:'بنك دخان',QAMC:'قامكو',BRES:'بروة',IGRD:'استثمار القابضة',VFQS:'فودافون قطر',MPHC:'مسيعيد',QEWS:'نبراس للطاقة',QNNS:'الملاحة القطرية',QGRI:'العامة للتأمين'};
+const ALL_SYMBOLS=['ABQK','AHCS','AKHI','BEMA','BLDN','BRES','CBQK','DBIS','DHBK','DOHI','DUBK','ERES','FALH','GISS','GWCS','IGRD','IHGS','IQCD','MARK','MCCS','MCGS','MERS','MEZA','MFMS','MHAR','MKDM','MPHC','MRDS','NLCS','ORDS','QAMC','QATI','QCFS','QEWS','QFBQ','QFLS','QGMD','QGRI','QGTS','QIBK','QIGD','QIIK','QIMD','QISI','QLMI','QNBK','QNCD','QNNS','SIIS','TQES','UDCD','VFQS','WDAM','ZHCD'];
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8'};
 let catalogCache={expires:0,data:null};
 const historicalSignalCache=new Map();
@@ -100,6 +101,29 @@ export async function listStocks(){
   return Object.values(catalog).filter(stock=>!nonCompanyInstruments.has(stock.symbol)).sort((a,b)=>(a.arabicName||a.symbol).localeCompare(b.arabicName||b.symbol,'ar'));
 }
 
+export async function listCurrentSignals(){
+  let stocks;try{stocks=await listStocks()}catch{stocks=ALL_SYMBOLS.map(symbol=>({symbol,arabicName:STATIC_NAMES[symbol]||symbol}))}const symbols=stocks.map(x=>x.symbol);
+  const columns=['name','open','high','low','close','volume'];
+  const response=await fetchWithTimeout(TV_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({symbols:{tickers:symbols.map(s=>`QSE:${s}`),query:{types:[]}},columns})},30_000);
+  if(!response.ok)throw new Error(`TradingView HTTP ${response.status}`);
+  const market=new Map((await response.json()).data?.map(row=>[row.s.split(':')[1],Object.fromEntries(columns.map((key,index)=>[key,row.d[index]]))])||[]);
+  const now=new Date(),parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Qatar',weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(x=>x.type!=='literal').map(x=>[x.type,x.value])),today=`${parts.year}-${parts.month}-${parts.day}`,afterClose=['Sun','Mon','Tue','Wed','Thu'].includes(parts.weekday)&&(+parts.hour*60)+(+parts.minute)>=810;
+  const result={buy:[],sell:[],watch:[],errors:[]};
+  for(const stock of stocks){
+    try{
+      let daily=JSON.parse(await readFile(join(ROOT,'data',`${stock.symbol}.json`),'utf8')),intraday=JSON.parse(await readFile(join(ROOT,'data','intraday',`${stock.symbol}-60.json`),'utf8')),quote=market.get(stock.symbol);
+      if(afterClose&&quote)daily.push({date:today,open:+quote.open,high:+quote.high,low:+quote.low,close:+quote.close,volume:+quote.volume});
+      daily=[...new Map(daily.map(c=>[String(c.date).slice(0,10),c])).values()].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+      const analysis=analyzeEod({daily,intraday}),item={symbol:stock.symbol,name:stock.arabicName||stock.englishName||stock.symbol,score:analysis.score,entry:analysis.entry,stop:analysis.stop,price:Number(quote?.close??daily.at(-1)?.close),date:daily.at(-1)?.date};
+      if(analysis.decision==='buy')result.buy.push({...item,side:'buy'});
+      else if(analysis.decision==='sell')result.sell.push({...item,side:'sell'});
+      else if(analysis.watch)result.watch.push({...item,side:analysis.watch.side,score:analysis.watch.score,entry:analysis.watch.entry,stop:analysis.watch.stop});
+    }catch(error){result.errors.push({symbol:stock.symbol,error:error.message})}
+  }
+  for(const key of ['buy','sell','watch'])result[key].sort((a,b)=>b.score-a.score);
+  return{...result,checked:stocks.length,updatedAt:new Date().toISOString()};
+}
+
 function json(res,status,data){res.writeHead(status,{'content-type':MIME['.json'],'cache-control':'no-store'});res.end(JSON.stringify(data))}
 async function serveFile(req,res){
   const requested=new URL(req.url,'http://localhost').pathname==='/'?'index-production.html':decodeURIComponent(new URL(req.url,'http://localhost').pathname.slice(1));
@@ -115,6 +139,7 @@ const server=http.createServer(async(req,res)=>{
       try{return json(res,200,await analyzeSymbol(symbol))}catch(error){return json(res,502,{error:error.message})}
     }
     if(url.pathname==='/api/stocks')return json(res,200,{stocks:await listStocks(),updatedAt:new Date().toISOString()});
+    if(url.pathname==='/api/signals')return json(res,200,await listCurrentSignals());
     return serveFile(req,res);
   }catch(error){return json(res,500,{error:'خطأ داخلي في الخادم.'})}
 });
