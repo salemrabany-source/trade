@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { analyzePatterns } from './pattern-engine.mjs';
+import { analyzePatterns, normalizePatternCandles, PATTERN_CONFIG } from './pattern-engine.mjs';
 
 const ROOT=fileURLToPath(new URL('.',import.meta.url));
 const PORT=Number(process.env.PORT||8080);
@@ -16,6 +16,18 @@ const STATIC_NAMES={QNBK:'بنك قطر الوطني',QIBK:'مصرف قطر ال
 const ALL_SYMBOLS=['ABQK','AHCS','AKHI','BEMA','BLDN','BRES','CBQK','DBIS','DHBK','DOHI','DUBK','ERES','FALH','GISS','GWCS','IGRD','IHGS','IQCD','MARK','MCCS','MCGS','MERS','MEZA','MFMS','MHAR','MKDM','MPHC','MRDS','NLCS','ORDS','QAMC','QATI','QCFS','QEWS','QFBQ','QFLS','QGMD','QGRI','QGTS','QIBK','QIGD','QIIK','QIMD','QISI','QLMI','QNBK','QNCD','QNNS','SIIS','TQES','UDCD','VFQS','WDAM','ZHCD'];
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8'};
 let catalogCache={expires:0,data:null};
+
+async function hasUsable15MinuteHistory(symbol){
+  try{
+    const rows=JSON.parse(await readFile(join(ROOT,'data','intraday',`${symbol}-15.json`),'utf8'));
+    return normalizePatternCandles(rows,true).length>=PATTERN_CONFIG.minIntraday;
+  }catch{return false}
+}
+
+async function onlyStocksWith15MinuteHistory(stocks){
+  const availability=await Promise.all(stocks.map(stock=>hasUsable15MinuteHistory(stock.symbol)));
+  return stocks.filter((_,index)=>availability[index]);
+}
 
 async function fetchWithTimeout(url,options={},timeout=12000){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
@@ -70,6 +82,7 @@ function buildAnalysis(x){
 
 export async function analyzeSymbol(symbol){
   if(!/^[A-Z0-9]{3,6}$/.test(symbol))throw new Error('رمز السهم غير صالح.');
+  if(!await hasUsable15MinuteHistory(symbol))throw new Error('هذا السهم غير متاح حاليًا لعدم اكتمال شموع 15 دقيقة.');
   let catalog={},groupStatus='connected';
   try{catalog=await groupCatalog()}catch(error){groupStatus=`unavailable: ${error.message}`}
   if(Object.keys(catalog).length&&!catalog[symbol])throw new Error('الرمز غير مدرج في قائمة المجموعة.');
@@ -90,11 +103,12 @@ export async function analyzeSymbol(symbol){
 export async function listStocks(){
   const catalog=await groupCatalog();
   const nonCompanyInstruments=new Set(['QATR','QETF']);
-  return Object.values(catalog).filter(stock=>!nonCompanyInstruments.has(stock.symbol)).sort((a,b)=>(a.arabicName||a.symbol).localeCompare(b.arabicName||b.symbol,'ar'));
+  const companies=Object.values(catalog).filter(stock=>!nonCompanyInstruments.has(stock.symbol));
+  return (await onlyStocksWith15MinuteHistory(companies)).sort((a,b)=>(a.arabicName||a.symbol).localeCompare(b.arabicName||b.symbol,'ar'));
 }
 
 export async function listCurrentSignals(){
-  let stocks;try{stocks=await listStocks()}catch{stocks=ALL_SYMBOLS.map(symbol=>({symbol,arabicName:STATIC_NAMES[symbol]||symbol}))}const symbols=stocks.map(x=>x.symbol);
+  let stocks;try{stocks=await listStocks()}catch{stocks=await onlyStocksWith15MinuteHistory(ALL_SYMBOLS.map(symbol=>({symbol,arabicName:STATIC_NAMES[symbol]||symbol})))}const symbols=stocks.map(x=>x.symbol);
   const columns=['name','open','high','low','close','volume'];
   const response=await fetchWithTimeout(TV_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({symbols:{tickers:symbols.map(s=>`QSE:${s}`),query:{types:[]}},columns})},30_000);
   if(!response.ok)throw new Error(`TradingView HTTP ${response.status}`);
