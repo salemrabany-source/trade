@@ -1,0 +1,31 @@
+name: Collect Qatar 15-minute candles
+
+on:
+  schedule:
+    # Qatar session with a safety allowance for TradingView's delayed feed.
+    - cron: '4,19,34,49 6-11 * * 0-4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qatar-market-data
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/collect-15m.mjs
+      - name: Commit updated 15-minute candles
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/intraday/*-15.json
+          git diff --cached --quiet || git commit -m "data: update Qatar 15-minute candles"
+          git push
