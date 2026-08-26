@@ -6,7 +6,9 @@
     "start": "node server.mjs",
     "collect:eod": "node scripts/collect-eod.mjs",
     "collect:intraday": "node scripts/collect-intraday.mjs",
-    "check": "node --check server.mjs && node --check app.js && node --check analysis-engine.js && node --check eod-engine.mjs && node --check scripts/collect-eod.mjs && node --check scripts/collect-intraday.mjs"
+    "collect:15m": "node scripts/collect-15m.mjs",
+    "email:signals": "node scripts/email-signals.mjs",
+    "check": "node --check server.mjs && node --check api/signals.mjs && node --check app.js && node --check analysis-engine.js && node --check eod-engine.mjs && node --check pattern-engine.mjs && node --check scripts/collect-eod.mjs && node --check scripts/collect-intraday.mjs && node --check scripts/collect-15m.mjs && node --check scripts/email-signals.mjs"
   },
   "engines": { "node": ">=20" }
 }

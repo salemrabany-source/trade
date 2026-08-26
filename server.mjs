@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { analyzeEod } from './eod-engine.mjs';
+import { analyzePatterns } from './pattern-engine.mjs';
 
 const ROOT=fileURLToPath(new URL('.',import.meta.url));
 const PORT=Number(process.env.PORT||8080);
@@ -16,15 +16,6 @@ const STATIC_NAMES={QNBK:'بنك قطر الوطني',QIBK:'مصرف قطر ال
 const ALL_SYMBOLS=['ABQK','AHCS','AKHI','BEMA','BLDN','BRES','CBQK','DBIS','DHBK','DOHI','DUBK','ERES','FALH','GISS','GWCS','IGRD','IHGS','IQCD','MARK','MCCS','MCGS','MERS','MEZA','MFMS','MHAR','MKDM','MPHC','MRDS','NLCS','ORDS','QAMC','QATI','QCFS','QEWS','QFBQ','QFLS','QGMD','QGRI','QGTS','QIBK','QIGD','QIIK','QIMD','QISI','QLMI','QNBK','QNCD','QNNS','SIIS','TQES','UDCD','VFQS','WDAM','ZHCD'];
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8'};
 let catalogCache={expires:0,data:null};
-const historicalSignalCache=new Map();
-
-function lastHistoricalSignal(symbol,history){
-  const rows=[...new Map((history||[]).map(c=>[String(c.date).slice(0,10),c])).values()].sort((a,b)=>String(a.date).localeCompare(String(b.date))),key=`${symbol}:${rows.length}:${rows.at(-1)?.date||''}`;
-  if(historicalSignalCache.has(key))return historicalSignalCache.get(key);
-  let found=null;
-  for(let i=rows.length-2;i>=Math.max(120,rows.length-260);i--){const result=analyzeEod({daily:rows.slice(0,i+1),intraday:[]});if(result.decision==='buy'||result.decision==='sell'){found={date:rows[i].date,decision:result.decision,score:result.score,entry:result.entry,stop:result.stop};break}}
-  historicalSignalCache.clear();historicalSignalCache.set(key,found);return found;
-}
 
 async function fetchWithTimeout(url,options={},timeout=12000){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
@@ -85,14 +76,15 @@ export async function analyzeSymbol(symbol){
   const market=await tradingViewSnapshot(symbol),company=catalog[symbol];
   let history=[];try{history=JSON.parse(await readFile(join(ROOT,'data',`${symbol}.json`),'utf8'))}catch{}
   let intraday=[];try{intraday=JSON.parse(await readFile(join(ROOT,'data','intraday',`${symbol}-60.json`),'utf8'))}catch{}
+  let minutes15=[];try{minutes15=JSON.parse(await readFile(join(ROOT,'data','intraday',`${symbol}-15.json`),'utf8'))}catch{}
   const now=new Date(),qatarParts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Qatar',weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(x=>x.type!=='literal').map(x=>[x.type,x.value])),qatarDate=`${qatarParts.year}-${qatarParts.month}-${qatarParts.day}`,tradingDay=['Sun','Mon','Tue','Wed','Thu'].includes(qatarParts.weekday),afterClose=(+qatarParts.hour*60)+(+qatarParts.minute)>=13*60+30;
   if(tradingDay&&afterClose)history.push({date:qatarDate,open:+market.open,high:+market.high,low:+market.low,close:+market.close,volume:+market.volume});
   const historicalDataValid=!INVALID_HISTORICAL_SYMBOLS.has(symbol);
-  const full=historicalDataValid?analyzeEod({daily:history,intraday}):{decision:'wait',score:0,buyScore:0,sellScore:0,mode:'data-integrity-error',provisional:false,reason:'أُوقف التحليل لأن ملف الشموع التاريخية منسوب إلى رمز آخر.',entry:null,stop:null,checks:[],warnings:['يجب إعادة تصدير هذا السهم بعد تغيير رموز S1…S10 داخل كود Pine، ثم استيراد ملفي 1D و60 الصحيحين.'],coverage:{courseConditions:false,daily:false,weekly:false,monthly:false,intraday:false},timeframes:{daily:0,weekly:0,monthly:0,intraday:0}};
+  const full=historicalDataValid?analyzePatterns({daily:history,hourly:intraday,minutes15}):{decision:'wait',score:0,mode:'data-integrity-error',provisional:false,reason:'أُوقف التحليل لأن ملف الشموع التاريخية منسوب إلى رمز آخر.',entry:null,stop:null,checks:[],warnings:['يجب تصحيح ملفات الشموع المنسوبة إلى هذا الرمز.'],coverage:{courseConditions:false,daily:false,hourly:false,minutes15:false,intraday:false},timeframes:{daily:0,hourly:0,minutes15:0}};
   const snapshot=buildAnalysis(market);
-  const analysis=full.mode?.startsWith('full-')||full.mode==='data-integrity-error'?full:{...snapshot,mode:'snapshot-partial',provisional:true,availableConditions:5,totalConditions:'المحرك الكامل',warnings:[full.reason,'هذه إشارة أولية مبنية على الشروط المتاحة فقط، وليست توصية مكتملة أو نسبة نجاح.']};
+  const analysis=full.mode==='pattern-scanner'||full.mode==='data-integrity-error'?full:{...snapshot,mode:'snapshot-partial',provisional:true,availableConditions:5,totalConditions:'المحرك الكامل',warnings:[full.reason,'هذه إشارة أولية مبنية على الشروط المتاحة فقط، وليست توصية مكتملة أو نسبة نجاح.']};
   const chartCandles=[...new Map(history.map(c=>[c.date,c])).values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-300);
-  return {symbol,companyName:company?.arabicName||STATIC_NAMES[symbol]||market.description,englishName:company?.englishName||market.description,quote:{last:market.close,open:market.open,high:market.high,low:market.low,volume:market.volume,change:market.change,bid:null,ask:null},analysis:{...analysis,lastHistoricalSignal:historicalDataValid?lastHistoricalSignal(symbol,history):null},history:{storedCandles:historicalDataValid?Math.max(0,history.length-1):0,intradayCandles:historicalDataValid?intraday.length:0,requiredCandles:120,requiredIntradayCandles:30,fullEngine:full.mode?.startsWith('full-')},chart:{daily:{interval:'1D',candles:historicalDataValid?chartCandles:[]},hourly:{interval:'60',candles:historicalDataValid?intraday.slice(-500):[]}},updatedAt:new Date().toISOString(),sources:{group:{url:GROUP_URL,status:groupStatus,usage:'التحقق من الرمز واسم الشركة'},tradingView:{status:'connected',usage:'السعر والمؤشرات الفنية ولقطة EOD'}}};
+  return {symbol,companyName:company?.arabicName||STATIC_NAMES[symbol]||market.description,englishName:company?.englishName||market.description,quote:{last:market.close,open:market.open,high:market.high,low:market.low,volume:market.volume,change:market.change,bid:null,ask:null},analysis:{...analysis,lastHistoricalSignal:null},history:{storedCandles:historicalDataValid?Math.max(0,history.length-1):0,intradayCandles:historicalDataValid?intraday.length:0,minutes15Candles:historicalDataValid?minutes15.length:0,requiredCandles:120,requiredIntradayCandles:30,fullEngine:full.mode==='pattern-scanner'},chart:{daily:{interval:'1D',candles:historicalDataValid?chartCandles:[]},hourly:{interval:'60',candles:historicalDataValid?intraday.slice(-500):[]},minutes15:{interval:'15',candles:historicalDataValid?minutes15.slice(-500):[]}},updatedAt:new Date().toISOString(),sources:{group:{url:GROUP_URL,status:groupStatus,usage:'التحقق من الرمز واسم الشركة'},tradingView:{status:'connected',usage:'السعر والمؤشرات الفنية ولقطة EOD'}}};
 }
 
 export async function listStocks(){
@@ -111,10 +103,10 @@ export async function listCurrentSignals(){
   const result={buy:[],sell:[],watch:[],errors:[]};
   for(const stock of stocks){
     try{
-      let daily=JSON.parse(await readFile(join(ROOT,'data',`${stock.symbol}.json`),'utf8')),intraday=JSON.parse(await readFile(join(ROOT,'data','intraday',`${stock.symbol}-60.json`),'utf8')),quote=market.get(stock.symbol);
+      let daily=JSON.parse(await readFile(join(ROOT,'data',`${stock.symbol}.json`),'utf8')),intraday=JSON.parse(await readFile(join(ROOT,'data','intraday',`${stock.symbol}-60.json`),'utf8')),minutes15=[];try{minutes15=JSON.parse(await readFile(join(ROOT,'data','intraday',`${stock.symbol}-15.json`),'utf8'))}catch{}const quote=market.get(stock.symbol);
       if(afterClose&&quote)daily.push({date:today,open:+quote.open,high:+quote.high,low:+quote.low,close:+quote.close,volume:+quote.volume});
       daily=[...new Map(daily.map(c=>[String(c.date).slice(0,10),c])).values()].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-      const analysis=analyzeEod({daily,intraday}),item={symbol:stock.symbol,name:stock.arabicName||stock.englishName||stock.symbol,score:analysis.score,entry:analysis.entry,stop:analysis.stop,price:Number(quote?.close??daily.at(-1)?.close),date:daily.at(-1)?.date};
+      const analysis=analyzePatterns({daily,hourly:intraday,minutes15},{includeHistoricalStats:false}),item={symbol:stock.symbol,name:stock.arabicName||stock.englishName||stock.symbol,score:analysis.score,strength:analysis.strength,pattern:analysis.primaryPattern?.label||analysis.watch?.label,timeframe:analysis.primaryPattern?.timeframeLabel||analysis.watch?.timeframeLabel,entry:analysis.entry,stop:analysis.stop,price:Number(quote?.close??daily.at(-1)?.close),date:daily.at(-1)?.date};
       if(analysis.decision==='buy')result.buy.push({...item,side:'buy'});
       else if(analysis.decision==='sell')result.sell.push({...item,side:'sell'});
       else if(analysis.watch)result.watch.push({...item,side:analysis.watch.side,score:analysis.watch.score,entry:analysis.watch.entry,stop:analysis.watch.stop});
